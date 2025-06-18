@@ -1,6 +1,7 @@
 import com.sun.tools.javac.Main;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -8,10 +9,11 @@ public class Application {
 
     public static void main(String[] args) {
 
-        testsStreams();
+        //testsStreams();
         //playingStringStreams();
         //iterateLimitStream();
-
+        //reduceStream();
+        collect();
     }
 
     public static void testsStreams() {
@@ -96,5 +98,57 @@ public class Application {
                 //.map(String::toLowerCase)
                 .map(s -> s.charAt(0) + " - " + s)
                 .forEach(System.out::println);
+    }
+
+    public static void reduceStream() {
+        OptionalInt reduced = IntStream.range(1, 4).reduce(Integer::sum);
+        System.out.println("Reduced Stream: " + reduced);
+
+        int reducedTwoParams = IntStream.range(1, 4).reduce(10, (a, b) -> a + b);
+        System.out.println("Reduced Two Parameters Stream: " + reducedTwoParams);
+
+        int reducedParallel = Arrays.asList(1, 2, 3).parallelStream()
+                .reduce(10, (a, b) -> a + b, (a, b) -> {
+                    System.out.println("combiner was called");
+                    return a + b;
+                });
+        System.out.println("Reduced Paralel Stream " + reducedParallel);
+    }
+
+    public static void collect() {
+
+        List<Product> productList = Arrays.asList(new Product(23, "potatoes"),
+                new Product(14, "orange"), new Product(13, "lemon"),
+                new Product(23, "bread"), new Product(13, "sugar"));
+
+        List<String> collectorCollection =
+                productList.stream().map(Product::getName).toList();
+
+        System.out.println("Collector List: " + collectorCollection);
+
+        String listToString = productList.stream().map(Product::getName)
+                .collect(Collectors.joining(", ", "[", "]"));
+
+        //Same result than collectorCollection
+        System.out.println("List to String: " + listToString);
+
+        double averagePrice = productList.stream()
+                .collect(Collectors.averagingInt(Product::getPrice));
+
+        System.out.println("Average Price: " + averagePrice);
+
+        int summingPrice = productList.stream().mapToInt(Product::getPrice).sum();
+        System.out.println("Summing Price: " + summingPrice);
+
+        Map<Integer, List<Product>> collectorMapOfLists = productList.stream()
+                .collect(Collectors.groupingBy(Product::getPrice));
+
+        System.out.println("Collector Map List: " + collectorMapOfLists);
+
+        Map<Boolean, List<Product>> mapPartioned = productList.stream()
+                .collect(Collectors.partitioningBy(element -> element.getPrice() > 15));
+
+        System.out.println("Map Partioned: " + mapPartioned);
+
     }
 }
